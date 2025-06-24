@@ -1,0 +1,47 @@
+{
+    "name": "hadyfayed/filament-workflow-canvas",
+    "description": "Visual workflow builder and canvas component for FilamentPHP applications",
+    "keywords": ["filament", "workflow", "canvas", "visual", "builder", "react", "laravel"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Hady Fayed",
+            "email": "hadyfayed@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0|^12.0",
+        "hadyfayed/filament-react-wrapper": "^1.0",
+        "filament/filament": "^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0",
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "HadyFayed\\WorkflowCanvas\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HadyFayed\\WorkflowCanvas\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HadyFayed\\WorkflowCanvas\\WorkflowCanvasServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "homepage": "https://github.com/hadyfayed/filament-workflow-canvas",
+    "support": {
+        "issues": "https://github.com/hadyfayed/filament-workflow-canvas/issues",
+        "source": "https://github.com/hadyfayed/filament-workflow-canvas"
+    },
+    "version": "1.0.0"
+}
