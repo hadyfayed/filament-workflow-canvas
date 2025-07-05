@@ -35,6 +35,7 @@ export interface IWorkflowManager {
 }
 
 export interface INodeManager {
+  setNodeIdCounter(arg0: number): unknown;
   createNode(type: string, position?: { x: number; y: number }): Node;
   validateNode(node: Node): boolean;
   getNodePosition(nodeType: string, existingNodes: Node[]): { x: number; y: number };
@@ -45,6 +46,7 @@ export interface IConnectionManager {
   validateConnection(sourceType: string, targetType: string): boolean;
   createConnection(source: string, target: string): Edge;
   getValidTargets(sourceType: string): string[];
+  getConnectionRules(): Record<string, string[]>;
 }
 
 export interface IViewportManager {
@@ -62,6 +64,11 @@ export interface IWorkflowPersistence {
 }
 
 export interface IWorkflowEventSystem {
+  emitNodeAdded(newNode: Node): unknown;
+  emitWorkflowSaved(workflowData: WorkflowData): unknown;
+  emitNodeUpdated(updatedNode: Node): unknown;
+  emitNodeDeleted(nodeId: string): unknown;
+  emitConnectionCreated(edge: Edge): unknown;
   onNodeAdded(callback: (node: Node) => void): void;
   onNodeUpdated(callback: (node: Node) => void): void;
   onNodeDeleted(callback: (nodeId: string) => void): void;

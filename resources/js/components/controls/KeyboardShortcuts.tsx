@@ -32,14 +32,16 @@ export const KeyboardShortcuts: FC<KeyboardShortcutsProps> = ({
   selectedNode,
   onEscape,
   onUndo,
-  onRedo
+  onRedo,
 }) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Prevent shortcuts when typing in inputs
-      if (event.target instanceof HTMLInputElement || 
-          event.target instanceof HTMLTextAreaElement ||
-          event.target instanceof HTMLSelectElement) {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement
+      ) {
         return;
       }
 

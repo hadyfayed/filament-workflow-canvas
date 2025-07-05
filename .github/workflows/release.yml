@@ -1,0 +1,330 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  NODE_VERSION: '18'
+  PHP_VERSION: '8.2'
+
+jobs:
+  # Validate release tag and version
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-prerelease: ${{ steps.version.outputs.prerelease }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Check if this is a prerelease (contains alpha, beta, rc)
+          if [[ $VERSION =~ (alpha|beta|rc) ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Releasing version: $VERSION"
+          echo "Prerelease: $([ '${{ steps.version.outputs.prerelease }}' = 'true' ] && echo 'yes' || echo 'no')"
+
+      - name: Validate package.json version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if [ "$PACKAGE_VERSION" != "${{ steps.version.outputs.version }}" ]; then
+            echo "❌ Version mismatch: tag=${{ steps.version.outputs.version }}, package.json=$PACKAGE_VERSION"
+            exit 1
+          fi
+          echo "✅ Version validation passed"
+
+  # Run full test suite
+  test-suite:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    needs: [validate-release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run complete CI pipeline
+        run: npm run ci
+
+      - name: Build production packages
+        run: |
+          npm run build
+          npm run build:laravel
+
+      - name: Verify build outputs
+        run: |
+          if [ ! -f "dist/index.es.js" ]; then
+            echo "❌ Main build output missing"
+            exit 1
+          fi
+          
+          if [ ! -f "dist/types/index.d.ts" ]; then
+            echo "❌ TypeScript declarations missing"
+            exit 1
+          fi
+          
+          echo "✅ Build verification passed"
+
+  # Build and package for release
+  build-release:
+    name: Build Release Assets
+    runs-on: ubuntu-latest
+    needs: [validate-release, test-suite]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Build Laravel assets
+        run: npm run build:laravel
+
+      - name: Build Storybook
+        run: npm run build-storybook
+
+      - name: Create release archive
+        run: |
+          mkdir -p release-assets
+          
+          # Create NPM package tarball
+          npm pack
+          mv *.tgz release-assets/workflow-canvas-${{ needs.validate-release.outputs.version }}.tgz
+          
+          # Create source archive
+          zip -r release-assets/workflow-canvas-${{ needs.validate-release.outputs.version }}-source.zip \
+            . \
+            -x "node_modules/*" \
+            -x ".git/*" \
+            -x "coverage/*" \
+            -x "storybook-static/*"
+          
+          # Create assets archive
+          zip -r release-assets/workflow-canvas-${{ needs.validate-release.outputs.version }}-assets.zip \
+            dist/ \
+            storybook-static/
+
+      - name: Upload release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets/
+          retention-days: 30
+
+  # Publish to NPM
+  publish-npm:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    needs: [validate-release, test-suite, build-release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Publish to NPM
+        run: |
+          if [ "${{ needs.validate-release.outputs.is-prerelease }}" = "true" ]; then
+            npm publish --tag beta
+            echo "📦 Published prerelease to NPM with 'beta' tag"
+          else
+            npm publish
+            echo "📦 Published stable release to NPM"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Create GitHub Release
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate-release, test-suite, build-release, publish-npm]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets/
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          echo "## Changes since $PREVIOUS_TAG" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          # Get commits since last tag
+          git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD >> CHANGELOG.md
+          
+          # Format for GitHub release
+          CHANGELOG=$(cat CHANGELOG.md)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release v${{ needs.validate-release.outputs.version }}
+          body: |
+            # Workflow Canvas v${{ needs.validate-release.outputs.version }}
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Installation
+            
+            ```bash
+            npm install @hadyfayed/filament-workflow-canvas@${{ needs.validate-release.outputs.version }}
+            ```
+            
+            ## Documentation
+            
+            - [Installation Guide](./docs/installation.md)
+            - [Quick Start](./docs/quick-start.md)
+            - [API Reference](./docs/api/typescript.md)
+            - [Storybook](https://your-username.github.io/filament-workflow-canvas/storybook/)
+            
+            ## Assets
+            
+            - **NPM Package**: Available on [npmjs.com](https://www.npmjs.com/package/@hadyfayed/filament-workflow-canvas)
+            - **Storybook**: Interactive component documentation
+            - **Source Code**: Complete source with examples
+          draft: false
+          prerelease: ${{ needs.validate-release.outputs.is-prerelease == 'true' }}
+
+      - name: Upload NPM package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release-assets/workflow-canvas-${{ needs.validate-release.outputs.version }}.tgz
+          asset_name: workflow-canvas-${{ needs.validate-release.outputs.version }}.tgz
+          asset_content_type: application/gzip
+
+      - name: Upload source archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release-assets/workflow-canvas-${{ needs.validate-release.outputs.version }}-source.zip
+          asset_name: workflow-canvas-${{ needs.validate-release.outputs.version }}-source.zip
+          asset_content_type: application/zip
+
+      - name: Upload assets archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release-assets/workflow-canvas-${{ needs.validate-release.outputs.version }}-assets.zip
+          asset_name: workflow-canvas-${{ needs.validate-release.outputs.version }}-assets.zip
+          asset_content_type: application/zip
+
+  # Deploy Storybook to GitHub Pages
+  deploy-storybook:
+    name: Deploy Storybook
+    runs-on: ubuntu-latest
+    needs: [validate-release, create-github-release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Storybook
+        run: npm run build-storybook
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./storybook-static
+          destination_dir: storybook
+          cname: your-custom-domain.com  # Optional: set your custom domain
+
+  # Notify team about release
+  notify:
+    name: Release Notifications
+    runs-on: ubuntu-latest
+    needs: [validate-release, publish-npm, create-github-release, deploy-storybook]
+    if: always()
+
+    steps:
+      - name: Notify Slack (if configured)
+        if: success()
+        run: |
+          echo "🎉 Successfully released Workflow Canvas v${{ needs.validate-release.outputs.version }}"
+          # Add Slack webhook notification here if needed
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Release pipeline failed for v${{ needs.validate-release.outputs.version }}"
+          # Add failure notifications here

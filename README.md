@@ -60,6 +60,13 @@ Run the migrations:
 php artisan migrate
 ```
 
+### ✨ No Plugin Registration Required!
+React Wrapper v3.0 provides **direct Filament integration**:
+- No plugin registration needed in your Filament panel
+- Components work directly with Filament forms and resources  
+- Automatic asset loading and dependency management
+- Just install the packages and start using the components!
+
 ### Vite Configuration (Standard Laravel Approach)
 
 ```javascript
@@ -177,23 +184,44 @@ class WorkflowBuilder extends Component
 </div>
 ```
 
-### Filament Integration
+### Filament Integration (React Wrapper v3.0 Direct Integration)
 
+#### Form Field Integration
 ```php
-use Filament\Forms\Components\ViewComponent;
-use HadyFayed\WorkflowCanvas\WorkflowCanvasComponent;
+use HadyFayed\WorkflowCanvas\Forms\Components\WorkflowCanvasField;
 
-ViewComponent::make('workflow-canvas')
-    ->view('workflow-canvas::workflow-canvas')
-    ->viewData(fn ($record) => [
-        'component' => 'WorkflowCanvas',
-        'props' => [
-            'initialData' => $record->canvas_data,
-            'nodeTypes' => config('workflow-canvas.node_types'),
-        ],
-        'statePath' => 'canvas_data',
-    ])
+// In your Filament Resource
+WorkflowCanvasField::make('canvas_data')
+    ->reactive()           // Enable real-time React-PHP state sync
+    ->lazy()              // Load component when visible (performance optimization)
+    ->enableAutoSave()    // Auto-save workflow changes
+    ->showMinimap()       // Show workflow minimap
+    ->enableFullscreen()  // Allow fullscreen editing
+    ->nodeTypes(config('workflow-canvas.node_types'))
+    ->onWorkflowChange(fn($state) => $this->processWorkflow($state));
 ```
+
+#### Widget Integration
+```php
+use HadyFayed\WorkflowCanvas\Widgets\WorkflowStatsWidget;
+
+// In your Filament Panel
+class WorkflowStatsWidget extends ReactWidget
+{
+    protected string $componentName = 'WorkflowStatsWidget';
+    
+    public function getData(): array
+    {
+        return $this->getWorkflowStats(); // Data automatically shared with React
+    }
+}
+```
+
+#### No Plugin Required!
+React Wrapper v3.0 provides **direct Filament integration** without requiring plugin registration:
+- Components work directly with Filament forms and resources
+- Lazy loading and asset management handled automatically
+- 90%+ React-PHP function mapping for seamless integration
 
 ## Node Types
 

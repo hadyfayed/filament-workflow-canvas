@@ -21,18 +21,14 @@ export interface PropertyPanelProps {
  * PropertyPanel component for consistent panel layout
  * Provides the basic structure for property editing panels
  */
-export const PropertyPanel: FC<PropertyPanelProps> = memo(({
-  children,
-  width = 'w-[28rem]',
-  position = 'right',
-  className = ''
-}) => {
-  const positionClasses = {
-    left: 'left-0 border-r',
-    right: 'right-0 border-l'
-  };
+export const PropertyPanel: FC<PropertyPanelProps> = memo(
+  ({ children, width = 'w-[28rem]', position = 'right', className = '' }) => {
+    const positionClasses = {
+      left: 'left-0 border-r',
+      right: 'right-0 border-l',
+    };
 
-  const panelClasses = `
+    const panelClasses = `
     fixed top-0 ${positionClasses[position]} ${width} h-full 
     bg-white dark:bg-gray-900 
     shadow-xl z-50 flex flex-col 
@@ -40,11 +36,12 @@ export const PropertyPanel: FC<PropertyPanelProps> = memo(({
     ${className}
   `.trim();
 
-  return (
-    <div className={panelClasses} role="dialog" aria-modal="true">
-      {children}
-    </div>
-  );
-});
+    return (
+      <div className={panelClasses} role="dialog" aria-modal="true">
+        {children}
+      </div>
+    );
+  }
+);
 
 PropertyPanel.displayName = 'PropertyPanel';

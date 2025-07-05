@@ -15,14 +15,14 @@ export class NodeManagerService implements INodeManager {
       trigger: 'Event Trigger',
       condition: 'Filter Condition',
       transform: 'Data Transform',
-      analytics_driver: 'Analytics Platform'
+      analytics_driver: 'Analytics Platform',
     };
-    
+
     const nodeDescriptions: Record<string, string> = {
       trigger: 'Listens for incoming events',
       condition: 'Filters events based on conditions',
       transform: 'Transforms event data',
-      analytics_driver: 'Sends data to analytics platform'
+      analytics_driver: 'Sends data to analytics platform',
     };
 
     const newNode: Node = {
@@ -33,7 +33,7 @@ export class NodeManagerService implements INodeManager {
         label: nodeNames[type] || 'New Node',
         config: {},
         description: nodeDescriptions[type] || '',
-        hasError: false
+        hasError: false,
       } as NodeData,
       draggable: true,
       selectable: true,
@@ -63,15 +63,15 @@ export class NodeManagerService implements INodeManager {
     const typeOrder = ['trigger', 'condition', 'transform', 'analytics_driver'];
     const typeIndex = typeOrder.indexOf(nodeType);
     const sameTypeNodes = existingNodes.filter(n => n.type === nodeType);
-    
+
     const horizontalSpacing = 300;
     const verticalSpacing = 150;
     const startX = 100;
     const startY = 200;
-    
+
     return {
-      x: startX + (typeIndex * horizontalSpacing),
-      y: startY + (sameTypeNodes.length * verticalSpacing)
+      x: startX + typeIndex * horizontalSpacing,
+      y: startY + sameTypeNodes.length * verticalSpacing,
     };
   }
 
@@ -79,13 +79,13 @@ export class NodeManagerService implements INodeManager {
     const duplicatedNode: Node = {
       id: this.generateNodeId(),
       type: node.type,
-      position: { 
-        x: node.position.x + 50, 
-        y: node.position.y + 50 
+      position: {
+        x: node.position.x + 50,
+        y: node.position.y + 50,
       },
-      data: { 
-        ...node.data, 
-        label: `${(node.data as NodeData).label} Copy` 
+      data: {
+        ...node.data,
+        label: `${(node.data as NodeData).label} Copy`,
       },
       draggable: true,
       selectable: true,

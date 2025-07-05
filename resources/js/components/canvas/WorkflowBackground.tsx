@@ -24,27 +24,29 @@ export interface WorkflowBackgroundProps {
  * WorkflowBackground component for rendering canvas background
  * Provides configurable background patterns and colors
  */
-export const WorkflowBackground: FC<WorkflowBackgroundProps> = memo(({
-  variant = BackgroundVariant.Dots,
-  gap = 20,
-  size = 1.5,
-  color = '#e5e7eb',
-  backgroundColor = '#fafafa',
-  patternColor = '#e5e7eb'
-}) => {
-  return (
-    <Background
-      variant={variant}
-      gap={gap}
-      size={size}
-      color={color}
-      style={{ 
-        backgroundColor,
-        backgroundImage: `radial-gradient(circle at 25px 25px, ${patternColor} 1px, transparent 0)`,
-        backgroundSize: '50px 50px'
-      }}
-    />
-  );
-});
+export const WorkflowBackground: FC<WorkflowBackgroundProps> = memo(
+  ({
+    variant = BackgroundVariant.Dots,
+    gap = 20,
+    size = 1.5,
+    color = '#e5e7eb',
+    backgroundColor = '#fafafa',
+    patternColor = '#e5e7eb',
+  }) => {
+    return (
+      <Background
+        variant={variant}
+        gap={gap}
+        size={size}
+        color={color}
+        style={{
+          backgroundColor,
+          backgroundImage: `radial-gradient(circle at 25px 25px, ${patternColor} 1px, transparent 0)`,
+          backgroundSize: '50px 50px',
+        }}
+      />
+    );
+  }
+);
 
 WorkflowBackground.displayName = 'WorkflowBackground';

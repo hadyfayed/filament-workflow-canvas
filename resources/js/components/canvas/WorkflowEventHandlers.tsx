@@ -14,7 +14,7 @@ import { useWorkflowServices } from '../providers/WorkflowProvider';
 
 export interface WorkflowEventHandlersProps {
   onNodesChange: (nodes: Node[]) => void;
-  children: React.ReactElement;
+  children: React.ReactElement<any>;
   reactFlowInstance: any;
 }
 
@@ -25,7 +25,7 @@ export interface WorkflowEventHandlersProps {
 export const WorkflowEventHandlers: FC<WorkflowEventHandlersProps> = ({
   onNodesChange,
   children,
-  reactFlowInstance
+  reactFlowInstance,
 }) => {
   const { nodeManager, eventSystem } = useWorkflowServices();
 
@@ -35,35 +35,40 @@ export const WorkflowEventHandlers: FC<WorkflowEventHandlersProps> = ({
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
-  const onDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
 
-    const type = event.dataTransfer.getData('application/reactflow');
-    if (typeof type === 'undefined' || !type) {
-      return;
-    }
+      const type = event.dataTransfer.getData('application/reactflow');
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
 
-    const position = reactFlowInstance?.screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
+      const position = reactFlowInstance?.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
 
-    if (!position) return;
+      if (!position) return;
 
-    const newNode = nodeManager.createNode(type, position);
-    
-    if (nodeManager.validateNode(newNode)) {
-      onNodesChange([newNode]);
-      eventSystem.emitNodeAdded(newNode);
-    }
-  }, [reactFlowInstance, nodeManager, eventSystem, onNodesChange]);
+      const newNode = nodeManager.createNode(type, position);
+
+      if (nodeManager.validateNode(newNode)) {
+        onNodesChange([newNode]);
+        eventSystem.emitNodeAdded(newNode);
+      }
+    },
+    [reactFlowInstance, nodeManager, eventSystem, onNodesChange]
+  );
 
   // Clone the child element and add event handlers
-  return React.cloneElement(children, {
+  const childProps = {
     onDrop,
     onDragOver,
-    ...children.props
-  });
+    ...children.props,
+  };
+
+  return React.cloneElement(children, childProps);
 };
 
 WorkflowEventHandlers.displayName = 'WorkflowEventHandlers';

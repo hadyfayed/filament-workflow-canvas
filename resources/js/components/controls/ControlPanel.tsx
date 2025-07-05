@@ -24,39 +24,40 @@ export interface ControlPanelProps {
  * ControlPanel component for organizing control elements
  * Provides consistent styling and positioning for control groups
  */
-export const ControlPanel: FC<ControlPanelProps> = memo(({
-  position = 'top-right',
-  className = '',
-  children,
-  orientation = 'vertical',
-  spacing = 'normal',
-  background = 'blur'
-}) => {
-  const positionClasses = {
-    'top-left': '!top-4 !left-4',
-    'top-right': '!top-4 !right-4',
-    'bottom-left': '!bottom-4 !left-4',
-    'bottom-right': '!bottom-4 !right-4'
-  };
+export const ControlPanel: FC<ControlPanelProps> = memo(
+  ({
+    position = 'top-right',
+    className = '',
+    children,
+    orientation = 'vertical',
+    spacing = 'normal',
+    background = 'blur',
+  }) => {
+    const positionClasses = {
+      'top-left': '!top-4 !left-4',
+      'top-right': '!top-4 !right-4',
+      'bottom-left': '!bottom-4 !left-4',
+      'bottom-right': '!bottom-4 !right-4',
+    };
 
-  const orientationClasses = {
-    horizontal: 'flex flex-row',
-    vertical: 'flex flex-col'
-  };
+    const orientationClasses = {
+      horizontal: 'flex flex-row',
+      vertical: 'flex flex-col',
+    };
 
-  const spacingClasses = {
-    tight: 'gap-0.5',
-    normal: 'gap-1',
-    loose: 'gap-2'
-  };
+    const spacingClasses = {
+      tight: 'gap-0.5',
+      normal: 'gap-1',
+      loose: 'gap-2',
+    };
 
-  const backgroundClasses = {
-    solid: 'bg-white dark:bg-gray-900',
-    blur: 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm',
-    transparent: 'bg-transparent'
-  };
+    const backgroundClasses = {
+      solid: 'bg-white dark:bg-gray-900',
+      blur: 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm',
+      transparent: 'bg-transparent',
+    };
 
-  const panelClasses = `
+    const panelClasses = `
     ${orientationClasses[orientation]}
     ${spacingClasses[spacing]}
     ${backgroundClasses[background]}
@@ -65,13 +66,12 @@ export const ControlPanel: FC<ControlPanelProps> = memo(({
     ${className}
   `.trim();
 
-  return (
-    <Panel position={position} className={`${positionClasses[position]} z-50`}>
-      <div className={panelClasses}>
-        {children}
-      </div>
-    </Panel>
-  );
-});
+    return (
+      <Panel position={position} className={`${positionClasses[position]} z-50`}>
+        <div className={panelClasses}>{children}</div>
+      </Panel>
+    );
+  }
+);
 
 ControlPanel.displayName = 'ControlPanel';

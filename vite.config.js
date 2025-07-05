@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import dts from 'vite-plugin-dts';
 
 // Standalone Vite config for Workflow Canvas package
 export default defineConfig({
@@ -12,14 +13,16 @@ export default defineConfig({
                 presets: [['@babel/preset-env', { targets: 'defaults' }], '@babel/preset-typescript']
             }
         }),
+        dts({
+            insertTypesEntry: true,
+            outputDir: 'dist/types',
+            tsConfigFilePath: 'tsconfig.json'
+        })
     ],
     build: {
         lib: {
             entry: {
-                'bootstrap': resolve(__dirname, 'resources/js/bootstrap.tsx'),
                 'index': resolve(__dirname, 'resources/js/index.tsx'),
-                'WorkflowCanvas': resolve(__dirname, 'resources/js/WorkflowCanvas.tsx'),
-                'NodePropertiesPanel': resolve(__dirname, 'resources/js/NodePropertiesPanel.tsx'),
             },
             formats: ['es'],
             fileName: (format, entryName) => `${entryName}.${format}.js`,
@@ -43,7 +46,10 @@ export default defineConfig({
                 },
                 manualChunks: {
                     'workflow-core': ['./resources/js/utils.ts', './resources/js/types.ts'],
-
+                    'workflow-services': ['./resources/js/services/WorkflowManagerService.ts', './resources/js/services/NodeManagerService.ts'],
+                    'workflow-components': ['./resources/js/components/canvas/WorkflowCanvas.tsx', './resources/js/components/canvas/WorkflowCore.tsx'],
+                    'workflow-interfaces': ['./resources/js/interfaces/IWorkflowManager.ts'],
+                    'workflow-factories': ['./resources/js/factories/WorkflowServiceFactory.ts']
                 },
                 chunkFileNames: 'chunks/[name]-[hash].js',
                 minifyInternalExports: true

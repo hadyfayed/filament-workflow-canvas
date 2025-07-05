@@ -8,7 +8,7 @@ export { NodeManagerService } from './NodeManagerService';
 export { ConnectionManagerService } from './ConnectionManagerService';
 export { ViewportManagerService } from './ViewportManagerService';
 export { WorkflowEventService } from './WorkflowEventService';
-export { 
-  LocalStorageWorkflowPersistence, 
-  MemoryWorkflowPersistence 
+export {
+  LocalStorageWorkflowPersistence,
+  MemoryWorkflowPersistence,
 } from './WorkflowPersistenceService';

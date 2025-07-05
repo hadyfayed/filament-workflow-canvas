@@ -15,11 +15,11 @@ export class ViewportManagerService implements IViewportManager {
       includeHiddenNodes: true,
       minZoom: 0.1,
       maxZoom: 1.5,
-      duration: 200
+      duration: 200,
     };
 
     const mergedOptions = { ...defaultOptions, ...options };
-    
+
     if (instance && typeof instance.fitView === 'function') {
       instance.fitView(mergedOptions);
     }
@@ -27,7 +27,7 @@ export class ViewportManagerService implements IViewportManager {
 
   zoomIn(instance: any, options?: { step?: number }): void {
     const step = options?.step || 0.1;
-    
+
     if (instance && typeof instance.zoomIn === 'function') {
       instance.zoomIn();
     } else if (instance && typeof instance.setViewport === 'function') {
@@ -39,7 +39,7 @@ export class ViewportManagerService implements IViewportManager {
 
   zoomOut(instance: any, options?: { step?: number }): void {
     const step = options?.step || 0.1;
-    
+
     if (instance && typeof instance.zoomOut === 'function') {
       instance.zoomOut();
     } else if (instance && typeof instance.setViewport === 'function') {
@@ -66,7 +66,7 @@ export class ViewportManagerService implements IViewportManager {
       const newViewport = {
         x: -position.x + window.innerWidth / 2,
         y: -position.y + window.innerHeight / 2,
-        zoom: this.currentViewport.zoom
+        zoom: this.currentViewport.zoom,
       };
       this.updateViewport(newViewport);
       instance.setViewport(newViewport);

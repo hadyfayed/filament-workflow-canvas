@@ -31,7 +31,7 @@ export const WorkflowAutoSave: FC<WorkflowAutoSaveProps> = ({
   viewport,
   onStateChange,
   autoSaveDelay = 2000,
-  enabled = true
+  enabled = true,
 }) => {
   const { workflowManager } = useWorkflowServices();
 
@@ -43,12 +43,12 @@ export const WorkflowAutoSave: FC<WorkflowAutoSaveProps> = ({
     const timeoutId = setTimeout(async () => {
       try {
         const workflowData = await workflowManager.saveWorkflow(nodes, edges, viewport);
-        
+
         // Update local state only (no external saves)
         if (onStateChange) {
           onStateChange(workflowData);
         }
-        
+
         console.log('Auto-saved workflow data to local state');
       } catch (error) {
         console.error('Error in auto-save:', error);

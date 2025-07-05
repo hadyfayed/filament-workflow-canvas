@@ -10,25 +10,25 @@ class WorkflowStatsWidget extends ReactWidget
 {
     protected static ?string $heading = 'Workflow Statistics';
     
-    protected static string $view = 'workflow-canvas::filament.widgets.workflow-stats-widget';
-
+    protected string $componentName = 'WorkflowStatsWidget';
+    
     protected int | string | array $columnSpan = 'full';
+    
+    // React Wrapper v3.0 handles rendering directly, no view needed
 
-    public function __construct()
+    protected function setUp(): void
     {
-        parent::__construct();
-        $this->componentName = 'WorkflowStatsWidget';
-        $this->height = 400;
+        parent::setUp();
+        
+        // Configure with React Wrapper v3.0 patterns
+        $this->lazy()
+            ->height(400)
+            ->refreshInterval(30); // 30 seconds
     }
 
-    public function getComponentProps(): array
+    public function getData(): array
     {
-        $stats = $this->getWorkflowStats();
-        
-        return array_merge(parent::getComponentProps(), [
-            'stats' => $stats,
-            'refreshInterval' => 30000, // 30 seconds
-        ]);
+        return $this->getWorkflowStats();
     }
 
     protected function getWorkflowStats(): array

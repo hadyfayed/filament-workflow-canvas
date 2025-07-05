@@ -1,0 +1,372 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  PHP_VERSION: '8.2'
+
+jobs:
+  # Frontend Testing and Quality Assurance
+  frontend-tests:
+    name: Frontend Tests & Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript compilation check
+        run: npm run typecheck
+
+      - name: ESLint check
+        run: npm run lint:check
+
+      - name: Prettier format check
+        run: npm run format:check
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/clover.xml
+          flags: frontend
+          name: workflow-canvas-frontend
+
+  # Backend Testing (PHP/Laravel)
+  backend-tests:
+    name: Backend Tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php: ['8.1', '8.2', '8.3']
+        laravel: ['10.*', '11.*']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          coverage: xdebug
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Create Laravel test environment
+        run: |
+          cp .env.example .env.testing
+          php artisan key:generate --env=testing
+
+      - name: Run PHP tests
+        run: vendor/bin/phpunit --coverage-clover=coverage-php.xml
+
+      - name: Upload PHP coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage-php.xml
+          flags: backend
+          name: workflow-canvas-backend-php${{ matrix.php }}
+
+  # Build and Bundle Analysis
+  build-and-analyze:
+    name: Build & Bundle Analysis
+    runs-on: ubuntu-latest
+    needs: [frontend-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Build Laravel assets
+        run: npm run build:laravel
+
+      - name: Analyze bundle size
+        run: npm run build:analyze
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            public/
+          retention-days: 7
+
+      - name: Check bundle size
+        run: |
+          BUNDLE_SIZE=$(stat -c%s "dist/index.es.js")
+          echo "Bundle size: $BUNDLE_SIZE bytes"
+          if [ $BUNDLE_SIZE -gt 51200 ]; then
+            echo "⚠️ Bundle size ($BUNDLE_SIZE bytes) exceeds 50KB limit"
+            exit 1
+          fi
+          echo "✅ Bundle size is within acceptable limits"
+
+  # Storybook Build and Deploy
+  storybook:
+    name: Storybook Build
+    runs-on: ubuntu-latest
+    needs: [frontend-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Storybook
+        run: npm run build-storybook
+
+      - name: Upload Storybook artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static/
+          retention-days: 7
+
+      # Deploy to GitHub Pages (if on main branch)
+      - name: Deploy Storybook to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./storybook-static
+          destination_dir: storybook
+
+  # Security and Dependencies Audit
+  security-audit:
+    name: Security & Dependencies Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Check for known vulnerabilities
+        run: npm audit --audit-level=high --production
+
+      - name: Setup PHP for Composer audit
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev
+
+      - name: Run Composer audit
+        run: composer audit
+
+  # Package Publishing (on release)
+  publish:
+    name: Publish Package
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests, build-and-analyze]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  # Performance and Lighthouse Testing
+  performance:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: [storybook]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download Storybook artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static/
+
+      - name: Serve Storybook
+        run: |
+          npx http-server storybook-static -p 8080 &
+          sleep 5
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  # Dependency Update Check
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC
+
+  # Code Quality and Technical Debt
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+# Workflow Status Summary
+  status-summary:
+    name: CI Status Summary
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests, build-and-analyze, storybook, security-audit]
+    if: always()
+
+    steps:
+      - name: Check workflow results
+        run: |
+          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build & Analyze | ${{ needs.build-and-analyze.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Storybook | ${{ needs.storybook.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Audit | ${{ needs.security-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any critical job failed
+        if: |
+          needs.frontend-tests.result == 'failure' ||
+          needs.backend-tests.result == 'failure' ||
+          needs.build-and-analyze.result == 'failure'
+        run: |
+          echo "❌ Critical CI jobs failed"
+          exit 1
+
+      - name: Success summary
+        if: |
+          needs.frontend-tests.result == 'success' &&
+          needs.backend-tests.result == 'success' &&
+          needs.build-and-analyze.result == 'success'
+        run: echo "✅ All critical CI jobs passed successfully"

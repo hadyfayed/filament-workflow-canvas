@@ -9,16 +9,16 @@
  */
 
 import React, { useCallback, useEffect, FC } from 'react';
-import { 
-  StateManagerProvider, 
-  useStatePath, 
-  useStateManager 
-} from '../../../react-wrapper/core';
+import {
+  StateManagerProvider,
+  useStatePath,
+  useStateManager,
+} from '@hadyfayed/filament-react-wrapper';
 import { ReactFlowProvider, useNodesState, useEdgesState, Node, useReactFlow } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 // Component imports
-import { WorkflowProvider, WorkflowServiceConfig } from '../providers/WorkflowProvider';
+import { WorkflowProvider, WorkflowServices } from '../providers/WorkflowProvider';
 import { WorkflowCore } from './WorkflowCore';
 import { WorkflowBackground } from './WorkflowBackground';
 import { WorkflowMiniMap } from './WorkflowMiniMap';
@@ -29,13 +29,14 @@ import { Toolbar } from '../toolbar/Toolbar';
 import { CustomControls } from '../controls/CustomControls';
 
 // Hooks and services
-import { 
-  useWorkflowManager, 
-  useNodeManager, 
-  useViewportManager, 
-  useWorkflowEventSystem 
+import {
+  useWorkflowManager,
+  useNodeManager,
+  useViewportManager,
+  useWorkflowEventSystem,
 } from '../providers/WorkflowProvider';
 import { WorkflowData } from '../../interfaces';
+import { WorkflowServiceConfig } from '@/factories/WorkflowServiceFactory';
 
 export interface WorkflowCanvasProps {
   initialData?: WorkflowData | null;
@@ -50,13 +51,13 @@ export interface WorkflowCanvasProps {
 /**
  * Workflow Canvas Implementation using separated components
  */
-const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({ 
-  initialData = null, 
-  onDataChange = null, 
-  readonly = false, 
-  showMinimap = true, 
+const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
+  initialData = null,
+  onDataChange = null,
+  readonly = false,
+  showMinimap = true,
   showControls = true,
-  autoSave = true
+  autoSave = true,
 }) => {
   // Services from context
   const workflowManager = useWorkflowManager();
@@ -76,18 +77,22 @@ const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
   // Load initial data using WorkflowManager service
   useEffect(() => {
     if (initialData && initialData.nodes && initialData.nodes.length > 0) {
-      const { nodes: reactFlowNodes, edges: reactFlowEdges } = workflowManager.loadWorkflow(initialData);
-      
+      const { nodes: reactFlowNodes, edges: reactFlowEdges } =
+        workflowManager.loadWorkflow(initialData);
+
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
-      
+
       // Set node ID counter based on loaded nodes
-      const maxId = Math.max(...reactFlowNodes.map(n => {
-        const match = n.id.match(/node_(\\d+)/);
-        return match ? parseInt(match[1]) : 0;
-      }), 0);
+      const maxId = Math.max(
+        ...reactFlowNodes.map(n => {
+          const match = n.id.match(/node_(\\d+)/);
+          return match && match[1] ? parseInt(match[1]) : 0;
+        }),
+        0
+      );
       nodeManager.setNodeIdCounter(maxId + 1);
-      
+
       // Handle viewport
       setTimeout(() => {
         if (reactFlowInstance) {
@@ -107,28 +112,43 @@ const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
         }
       }, 300);
     }
-  }, [initialData, setNodes, setEdges, setViewport, reactFlowInstance, workflowManager, nodeManager, viewportManager]);
+  }, [
+    initialData,
+    setNodes,
+    setEdges,
+    setViewport,
+    reactFlowInstance,
+    workflowManager,
+    nodeManager,
+    viewportManager,
+  ]);
 
   // Node operations
-  const onAddNode = useCallback((type: string) => {
-    const position = nodeManager.getNodePosition(type, nodes);
-    const newNode = nodeManager.createNode(type, position);
-    
-    if (nodeManager.validateNode(newNode)) {
-      setNodes((nds) => nds.concat(newNode));
-      eventSystem.emitNodeAdded(newNode);
-      
-      setTimeout(() => {
-        if (reactFlowInstance) {
-          viewportManager.fitView(reactFlowInstance, { duration: 300 });
-        }
-      }, 100);
-    }
-  }, [nodeManager, nodes, reactFlowInstance, viewportManager, eventSystem, setNodes]);
+  const onAddNode = useCallback(
+    (type: string) => {
+      const position = nodeManager.getNodePosition(type, nodes);
+      const newNode = nodeManager.createNode(type, position);
 
-  const onNodeClick = useCallback((event: any, node: Node) => {
-    setSelectedNode(node);
-  }, [setSelectedNode]);
+      if (nodeManager.validateNode(newNode)) {
+        setNodes(nds => nds.concat(newNode));
+        eventSystem.emitNodeAdded(newNode);
+
+        setTimeout(() => {
+          if (reactFlowInstance) {
+            viewportManager.fitView(reactFlowInstance, { duration: 300 });
+          }
+        }, 100);
+      }
+    },
+    [nodeManager, nodes, reactFlowInstance, viewportManager, eventSystem, setNodes]
+  );
+
+  const onNodeClick = useCallback(
+    (_event: any, node: Node) => {
+      setSelectedNode(node);
+    },
+    [setSelectedNode]
+  );
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
@@ -138,14 +158,14 @@ const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
   const saveWorkflow = useCallback(async () => {
     try {
       const workflowData = await workflowManager.saveWorkflow(nodes, edges, viewport);
-      
+
       setState('workflowData', workflowData);
       eventSystem.emitWorkflowSaved(workflowData);
-      
+
       if (onDataChange) {
         onDataChange(workflowData);
       }
-      
+
       // Visual feedback
       const saveButton = document.querySelector('[title=\"Save Workflow\"]') as HTMLElement;
       if (saveButton) {
@@ -156,7 +176,7 @@ const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
           saveButton.style.color = '';
         }, 1000);
       }
-      
+
       console.log('Workflow saved successfully:', workflowData);
     } catch (error) {
       console.error('Error saving workflow:', error);
@@ -180,15 +200,20 @@ const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
     setIsFullScreen((prev: boolean) => !prev);
   }, [setIsFullScreen]);
 
-  const handleViewportChange = useCallback((newViewport: any) => {
-    setViewport(newViewport);
-  }, [setViewport]);
+  const handleViewportChange = useCallback(
+    (newViewport: any) => {
+      setViewport(newViewport);
+    },
+    [setViewport]
+  );
 
   // Keyboard shortcuts handlers
   const handleDeleteSelected = useCallback(() => {
     if (selectedNode) {
       setNodes(nds => nds.filter(node => node.id !== selectedNode.id));
-      setEdges(eds => eds.filter(edge => edge.source !== selectedNode.id && edge.target !== selectedNode.id));
+      setEdges(eds =>
+        eds.filter(edge => edge.source !== selectedNode.id && edge.target !== selectedNode.id)
+      );
       setSelectedNode(null);
     }
   }, [selectedNode, setNodes, setEdges, setSelectedNode]);
@@ -198,30 +223,40 @@ const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
   }, [setSelectedNode]);
 
   // Auto-save state change handler
-  const handleAutoSaveStateChange = useCallback((data: WorkflowData) => {
-    setState('workflowData', data);
-  }, [setState]);
+  const handleAutoSaveStateChange = useCallback(
+    (data: WorkflowData) => {
+      setState('workflowData', data);
+    },
+    [setState]
+  );
 
   // Node operations for properties panel
-  const handleNodeUpdate = useCallback((updatedNode: Node) => {
-    setNodes(nds => nds.map(node => 
-      node.id === updatedNode.id ? updatedNode : node
-    ));
-    eventSystem.emitNodeUpdated(updatedNode);
-  }, [setNodes, eventSystem]);
+  const handleNodeUpdate = useCallback(
+    (updatedNode: Node) => {
+      setNodes(nds => nds.map(node => (node.id === updatedNode.id ? updatedNode : node)));
+      eventSystem.emitNodeUpdated(updatedNode);
+    },
+    [setNodes, eventSystem]
+  );
 
-  const handleNodeDelete = useCallback((nodeId: string) => {
-    setNodes(nds => nds.filter(node => node.id !== nodeId));
-    setEdges(eds => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
-    setSelectedNode(null);
-    eventSystem.emitNodeDeleted(nodeId);
-  }, [setNodes, setEdges, setSelectedNode, eventSystem]);
+  const handleNodeDelete = useCallback(
+    (nodeId: string) => {
+      setNodes(nds => nds.filter(node => node.id !== nodeId));
+      setEdges(eds => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
+      setSelectedNode(null);
+      eventSystem.emitNodeDeleted(nodeId);
+    },
+    [setNodes, setEdges, setSelectedNode, eventSystem]
+  );
 
-  const handleNodeDuplicate = useCallback((originalNode: Node) => {
-    const newNode = nodeManager.duplicateNode(originalNode);
-    setNodes(nds => nds.concat(newNode));
-    eventSystem.emitNodeAdded(newNode);
-  }, [nodeManager, setNodes, eventSystem]);
+  const handleNodeDuplicate = useCallback(
+    (originalNode: Node) => {
+      const newNode = nodeManager.duplicateNode(originalNode);
+      setNodes(nds => nds.concat(newNode));
+      eventSystem.emitNodeAdded(newNode);
+    },
+    [nodeManager, setNodes, eventSystem]
+  );
 
   // Fit view effect
   useEffect(() => {
@@ -311,14 +346,18 @@ const WorkflowCanvasImpl: FC<WorkflowCanvasProps> = ({
 /**
  * WorkflowCanvas with all providers
  */
-export const WorkflowCanvas: FC<WorkflowCanvasProps> = (props) => {
+export const WorkflowCanvas: FC<WorkflowCanvasProps> = props => {
   return (
     <StateManagerProvider
       initialState={{
         selectedNode: null,
         isFullScreen: false,
         viewport: { x: 0, y: 0, zoom: 0.5 },
-        workflowData: props.initialData || { nodes: [], connections: [], viewport: { x: 0, y: 0, zoom: 0.5 } }
+        workflowData: props.initialData || {
+          nodes: [],
+          connections: [],
+          viewport: { x: 0, y: 0, zoom: 0.5 },
+        },
       }}
       onStateChange={(state: any) => {
         console.log('State updated:', Object.keys(state));

@@ -11,7 +11,7 @@ export class ConnectionManagerService implements IConnectionManager {
     trigger: ['condition', 'transform', 'analytics_driver'],
     condition: ['transform', 'analytics_driver'],
     transform: ['analytics_driver'],
-    analytics_driver: []
+    analytics_driver: [],
   };
 
   validateConnection(sourceType: string, targetType: string): boolean {
@@ -32,11 +32,11 @@ export class ConnectionManagerService implements IConnectionManager {
       type: 'smoothstep',
       animated: true,
       style: edgeStyle,
-      markerEnd: { 
-        type: MarkerType.ArrowClosed, 
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
         color: '#3b82f6',
         width: 20,
-        height: 20 
+        height: 20,
       },
       className: 'animate-pulse',
     };

@@ -49,9 +49,9 @@ export class WorkflowEventService implements IWorkflowEventSystem {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
-    
+
     this.listeners.get(event)!.push({ callback, priority });
-    
+
     // Sort by priority (higher number = higher priority)
     this.listeners.get(event)!.sort((a, b) => b.priority - a.priority);
   }

@@ -25,29 +25,31 @@ export interface WorkflowMiniMapProps {
  * WorkflowMiniMap component for rendering canvas overview
  * Provides navigation and overview of the entire workflow
  */
-export const WorkflowMiniMap: FC<WorkflowMiniMapProps> = memo(({
-  show = true,
-  className = "bg-white border border-gray-200 rounded-lg shadow-lg",
-  maskColor = "rgba(0, 0, 0, 0.1)",
-  nodeColor = "#e5e7eb",
-  nodeStrokeWidth = 2,
-  nodeBorderRadius = 4,
-  position = 'bottom-right'
-}) => {
-  if (!show) {
-    return null;
-  }
+export const WorkflowMiniMap: FC<WorkflowMiniMapProps> = memo(
+  ({
+    show = true,
+    className = 'bg-white border border-gray-200 rounded-lg shadow-lg',
+    maskColor = 'rgba(0, 0, 0, 0.1)',
+    nodeColor = '#e5e7eb',
+    nodeStrokeWidth = 2,
+    nodeBorderRadius = 4,
+    position = 'bottom-right',
+  }) => {
+    if (!show) {
+      return null;
+    }
 
-  return (
-    <MiniMap
-      className={className}
-      maskColor={maskColor}
-      nodeColor={nodeColor}
-      nodeStrokeWidth={nodeStrokeWidth}
-      nodeBorderRadius={nodeBorderRadius}
-      position={position}
-    />
-  );
-});
+    return (
+      <MiniMap
+        className={className}
+        maskColor={maskColor}
+        nodeColor={nodeColor}
+        nodeStrokeWidth={nodeStrokeWidth}
+        nodeBorderRadius={nodeBorderRadius}
+        position={position}
+      />
+    );
+  }
+);
 
 WorkflowMiniMap.displayName = 'WorkflowMiniMap';

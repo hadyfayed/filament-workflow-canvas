@@ -1,79 +1,115 @@
-import { componentRegistry } from '@hadyfayed/filament-react-wrapper/core';
-import WorkflowCanvas from './WorkflowCanvas';
-import NodePropertiesPanel from './NodePropertiesPanel';
-import { Toolbar as ToolbarPanel } from './ToolbarPanel';
-import { CustomControls as CustomControlsPanel } from './CustomControlsPanel';
-import * as nodeTypes from './nodes';
+// Workflow Canvas - Complete system in a single file
+import React from 'react';
 
-// Register workflow components with enhanced metadata
-componentRegistry.register({
-    name: 'WorkflowCanvas',
-    component: WorkflowCanvas,
-    defaultProps: {
+// Import main components
+export { WorkflowCanvas } from './components/canvas/WorkflowCanvas';
+export type { WorkflowCanvasProps } from './components/canvas/WorkflowCanvas';
+export { NodePropertiesPanel } from './components/properties/NodePropertiesPanel';
+export type { NodePropertiesPanelProps } from './components/properties/NodePropertiesPanel';
+export { Toolbar } from './components/toolbar/Toolbar';
+export type { ToolbarProps } from './components/toolbar/Toolbar';
+export { CustomControls } from './components/controls/CustomControls';
+export type { CustomControlsProps } from './components/controls/CustomControls';
+
+// Re-export all component categories
+export * from './components';
+
+// Export services and interfaces
+export * from './services';
+export * from './factories/WorkflowServiceFactory';
+
+// Export hooks and utilities
+export * from './hooks/useConfirm';
+export * from './hooks/useNodeState';
+export * from './utils';
+export * from './nodes';
+
+// Export specific types to avoid conflicts
+export type { NodeType, NodeData, CanvasConfig } from './types';
+export type {
+  WorkflowNode,
+  WorkflowConnection,
+  WorkflowData,
+  IWorkflowManager,
+  INodeManager,
+  IConnectionManager,
+  IViewportManager,
+  IWorkflowPersistence,
+  IWorkflowEventSystem,
+} from './interfaces/IWorkflowManager';
+
+// Import components for registration
+import { WorkflowCanvas } from './components/canvas/WorkflowCanvas';
+import { NodePropertiesPanel } from './components/properties/NodePropertiesPanel';
+import { Toolbar } from './components/toolbar/Toolbar';
+import { CustomControls } from './components/controls/CustomControls';
+
+// Bootstrap function for initialization with React Wrapper v3.0
+export function bootstrap() {
+  // Use the new React Wrapper v3.0 registration pattern
+  if (typeof window !== 'undefined' && (window as any).reactWrapperRegistry) {
+    const registry = (window as any).reactWrapperRegistry;
+
+    // Register WorkflowCanvas with lazy loading support
+    registry.register('WorkflowCanvas', WorkflowCanvas, {
+      lazy: true,
+      preload: false,
+      dependencies: ['reactflow', '@heroicons/react', 'uuid'],
+      category: 'workflow',
+      description: 'Visual workflow builder with drag-and-drop interface',
+      defaultProps: {
         initialData: null,
         readonly: false,
         showMinimap: true,
-        showControls: true,
-    },
-    metadata: {
-        description: 'Visual workflow builder canvas component',
-        category: 'workflow',
-        tags: ['canvas', 'workflow', 'builder', 'visual'],
-    }
-});
+      },
+    });
 
-componentRegistry.register({
-    name: 'NodePropertiesPanel', 
-    component: NodePropertiesPanel,
-    defaultProps: {},
-    metadata: {
-        description: 'Properties panel for workflow nodes',
-        category: 'workflow',
-        tags: ['panel', 'properties', 'workflow'],
-    }
-});
+    // Register supporting components
+    registry.register('NodePropertiesPanel', NodePropertiesPanel, {
+      lazy: true,
+      category: 'workflow',
+      description: 'Properties panel for workflow nodes',
+    });
 
-componentRegistry.register({
-    name: 'WorkflowToolbar', 
-    component: ToolbarPanel,
-    defaultProps: {},
-    metadata: {
-        description: 'Toolbar for workflow canvas',
-        category: 'workflow',
-        tags: ['toolbar', 'workflow'],
-    }
-});
+    registry.register('WorkflowToolbar', Toolbar, {
+      lazy: true,
+      category: 'workflow',
+      description: 'Toolbar for workflow actions',
+    });
 
-componentRegistry.register({
-    name: 'WorkflowControls', 
-    component: CustomControlsPanel,
-    defaultProps: {},
-    metadata: {
-        description: 'Custom controls for workflow canvas',
-        category: 'workflow',
-        tags: ['controls', 'workflow'],
-    }
-});
+    registry.register('WorkflowControls', CustomControls, {
+      lazy: true,
+      category: 'workflow',
+      description: 'Custom controls for workflow canvas',
+    });
 
-// Export components for direct use
-export {
+    console.log('Workflow Canvas components registered with React Wrapper v3.0');
+  } else {
+    console.log('Workflow Canvas components loaded (React Wrapper v3.0 not available)');
+  }
+
+  return true;
+}
+
+// Make functionality globally available
+if (typeof window !== 'undefined') {
+  (window as any).WorkflowCanvas = {
     WorkflowCanvas,
     NodePropertiesPanel,
-    ToolbarPanel,
-    CustomControlsPanel,
-    nodeTypes,
-};
+    Toolbar,
+    CustomControls,
+    bootstrap,
+  };
 
-// Export workflow-specific utilities
-export * from './types';
-export * from './utils';
-
-// Log component registration in non-production environments
-if (process.env.NODE_ENV !== 'production') {
-    console.log('Workflow Canvas components registered:', [
-        'WorkflowCanvas', 
-        'NodePropertiesPanel',
-        'WorkflowToolbar',
-        'WorkflowControls'
-    ]);
+  // Auto-bootstrap
+  bootstrap();
 }
+
+// Default export for easy importing
+export default {
+  WorkflowCanvas,
+  NodePropertiesPanel,
+  Toolbar,
+  CustomControls,
+  bootstrap,
+};

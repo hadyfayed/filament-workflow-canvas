@@ -3,20 +3,23 @@
  * Following Open/Closed Principle and Factory Pattern
  */
 
-import { 
-  IWorkflowManager, 
-  INodeManager, 
-  IConnectionManager, 
-  IViewportManager, 
-  IWorkflowPersistence, 
-  IWorkflowEventSystem 
+import {
+  IWorkflowManager,
+  INodeManager,
+  IConnectionManager,
+  IViewportManager,
+  IWorkflowPersistence,
+  IWorkflowEventSystem,
 } from '../interfaces/IWorkflowManager';
 
 import { WorkflowManagerService } from '../services/WorkflowManagerService';
 import { NodeManagerService } from '../services/NodeManagerService';
 import { ConnectionManagerService } from '../services/ConnectionManagerService';
 import { ViewportManagerService } from '../services/ViewportManagerService';
-import { LocalStorageWorkflowPersistence, MemoryWorkflowPersistence } from '../services/WorkflowPersistenceService';
+import {
+  LocalStorageWorkflowPersistence,
+  MemoryWorkflowPersistence,
+} from '../services/WorkflowPersistenceService';
 import { WorkflowEventService } from '../services/WorkflowEventService';
 
 export type PersistenceType = 'localStorage' | 'memory' | 'none';
@@ -43,21 +46,21 @@ export class WorkflowServiceFactory {
 
   createWorkflowManager(config: WorkflowServiceConfig = {}): IWorkflowManager {
     const key = `workflow-manager-${JSON.stringify(config)}`;
-    
+
     if (this.services.has(key)) {
       return this.services.get(key);
     }
 
     const persistence = this.createPersistence(config);
     const workflowManager = new WorkflowManagerService(persistence);
-    
+
     this.services.set(key, workflowManager);
     return workflowManager;
   }
 
   createNodeManager(): INodeManager {
     const key = 'node-manager';
-    
+
     if (this.services.has(key)) {
       return this.services.get(key);
     }
@@ -69,7 +72,7 @@ export class WorkflowServiceFactory {
 
   createConnectionManager(): IConnectionManager {
     const key = 'connection-manager';
-    
+
     if (this.services.has(key)) {
       return this.services.get(key);
     }
@@ -81,7 +84,7 @@ export class WorkflowServiceFactory {
 
   createViewportManager(): IViewportManager {
     const key = 'viewport-manager';
-    
+
     if (this.services.has(key)) {
       return this.services.get(key);
     }
@@ -101,7 +104,7 @@ export class WorkflowServiceFactory {
     }
 
     const key = 'event-system';
-    
+
     if (this.services.has(key)) {
       return this.services.get(key);
     }
@@ -117,7 +120,7 @@ export class WorkflowServiceFactory {
     }
 
     const persistenceType = config.persistenceType || 'localStorage';
-    
+
     switch (persistenceType) {
       case 'localStorage':
         return new LocalStorageWorkflowPersistence();
@@ -143,7 +146,7 @@ export class WorkflowServiceFactory {
       nodeManager: this.createNodeManager(),
       connectionManager: this.createConnectionManager(),
       viewportManager: this.createViewportManager(),
-      eventSystem: this.createEventSystem(config)
+      eventSystem: this.createEventSystem(config),
     };
   }
 
@@ -158,7 +161,12 @@ export class WorkflowServiceFactory {
       onNodeDeleted: () => {},
       onConnectionCreated: () => {},
       onWorkflowSaved: () => {},
-      emit: () => {}
+      emit: () => {},
+      emitNodeAdded: () => {},
+      emitWorkflowSaved: () => {},
+      emitNodeUpdated: () => {},
+      emitNodeDeleted: () => {},
+      emitConnectionCreated: () => {},
     };
   }
 }

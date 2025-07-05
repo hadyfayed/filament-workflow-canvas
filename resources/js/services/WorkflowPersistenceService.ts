@@ -13,10 +13,10 @@ export class LocalStorageWorkflowPersistence implements IWorkflowPersistence {
       const fullKey = this.getFullKey(key);
       const serializedData = JSON.stringify(data);
       const timestamp = new Date().toISOString();
-      
+
       localStorage.setItem(fullKey, serializedData);
       localStorage.setItem(`${fullKey}-timestamp`, timestamp);
-      
+
       console.log(`Workflow saved to localStorage: ${fullKey}`);
     } catch (error) {
       console.error('Error saving workflow to localStorage:', error);
@@ -28,14 +28,14 @@ export class LocalStorageWorkflowPersistence implements IWorkflowPersistence {
     try {
       const fullKey = this.getFullKey(key);
       const serializedData = localStorage.getItem(fullKey);
-      
+
       if (!serializedData) {
         return null;
       }
 
       const data = JSON.parse(serializedData) as WorkflowData;
       console.log(`Workflow loaded from localStorage: ${fullKey}`);
-      
+
       return data;
     } catch (error) {
       console.error('Error loading workflow from localStorage:', error);
@@ -48,7 +48,7 @@ export class LocalStorageWorkflowPersistence implements IWorkflowPersistence {
       const fullKey = this.getFullKey(key);
       localStorage.removeItem(fullKey);
       localStorage.removeItem(`${fullKey}-timestamp`);
-      
+
       console.log(`Workflow removed from localStorage: ${fullKey}`);
     } catch (error) {
       console.error('Error removing workflow from localStorage:', error);
@@ -60,9 +60,9 @@ export class LocalStorageWorkflowPersistence implements IWorkflowPersistence {
     try {
       const keys = Object.keys(localStorage);
       const workflowKeys = keys.filter(key => key.startsWith(this.keyPrefix));
-      
+
       workflowKeys.forEach(key => localStorage.removeItem(key));
-      
+
       console.log(`Cleared ${workflowKeys.length} workflow items from localStorage`);
     } catch (error) {
       console.error('Error clearing workflows from localStorage:', error);

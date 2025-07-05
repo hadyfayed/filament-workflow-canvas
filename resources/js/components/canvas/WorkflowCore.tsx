@@ -45,42 +45,51 @@ export const WorkflowCore: FC<WorkflowCoreProps> = ({
   onPaneClick,
   onViewportChange,
   readonly = false,
-  children
+  children,
 }) => {
   const { connectionManager, eventSystem, viewportManager } = useWorkflowServices();
   const reactFlowInstance = useReactFlow();
 
   // Connection validation using service
-  const isValidConnection = useCallback((connection: Connection) => {
-    const sourceNode = nodes.find(n => n.id === connection.source);
-    const targetNode = nodes.find(n => n.id === connection.target);
-    if (!sourceNode || !targetNode) return false;
-    if (!sourceNode.type || !targetNode.type) return false;
-    
-    return connectionManager.validateConnection(sourceNode.type, targetNode.type);
-  }, [nodes, connectionManager]);
+  const isValidConnection = useCallback(
+    (connection: Connection) => {
+      const sourceNode = nodes.find(n => n.id === connection.source);
+      const targetNode = nodes.find(n => n.id === connection.target);
+      if (!sourceNode || !targetNode) return false;
+      if (!sourceNode.type || !targetNode.type) return false;
+
+      return connectionManager.validateConnection(sourceNode.type, targetNode.type);
+    },
+    [nodes, connectionManager]
+  );
 
   // Connection handler using service
-  const onConnect = useCallback((params: Connection) => {
-    if (isValidConnection(params)) {
-      const newEdge = connectionManager.createConnection(params.source!, params.target!);
-      
-      // Add the edge using ReactFlow's addEdge utility
-      const { addEdge } = require('reactflow');
-      onEdgesChange((eds: Edge[]) => addEdge(newEdge, eds));
-      
-      // Emit connection created event
-      eventSystem.emitConnectionCreated(newEdge);
-    }
-  }, [isValidConnection, connectionManager, eventSystem, onEdgesChange]);
+  const onConnect = useCallback(
+    (params: Connection) => {
+      if (isValidConnection(params)) {
+        const newEdge = connectionManager.createConnection(params.source!, params.target!);
+
+        // Add the edge using ReactFlow's addEdge utility
+        const { addEdge } = require('reactflow');
+        onEdgesChange((eds: Edge[]) => addEdge(newEdge, eds));
+
+        // Emit connection created event
+        eventSystem.emitConnectionCreated(newEdge);
+      }
+    },
+    [isValidConnection, connectionManager, eventSystem, onEdgesChange]
+  );
 
   // Viewport change handler
-  const handleViewportChange = useCallback((event: any, newViewport: any) => {
-    viewportManager.updateViewport(newViewport);
-    if (onViewportChange) {
-      onViewportChange(newViewport);
-    }
-  }, [viewportManager, onViewportChange]);
+  const handleViewportChange = useCallback(
+    (_event: any, newViewport: any) => {
+      viewportManager.updateViewport(newViewport);
+      if (onViewportChange) {
+        onViewportChange(newViewport);
+      }
+    },
+    [viewportManager, onViewportChange]
+  );
 
   return (
     <ReactFlow

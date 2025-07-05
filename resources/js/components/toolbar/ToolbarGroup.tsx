@@ -22,42 +22,36 @@ export interface ToolbarGroupProps {
  * ToolbarGroup component for organizing toolbar items
  * Provides consistent spacing and optional grouping
  */
-export const ToolbarGroup: FC<ToolbarGroupProps> = memo(({
-  children,
-  title,
-  orientation = 'vertical',
-  spacing = 'normal',
-  className = ''
-}) => {
-  const orientationClasses = {
-    horizontal: 'flex flex-row',
-    vertical: 'flex flex-col'
-  };
+export const ToolbarGroup: FC<ToolbarGroupProps> = memo(
+  ({ children, title, orientation = 'vertical', spacing = 'normal', className = '' }) => {
+    const orientationClasses = {
+      horizontal: 'flex flex-row',
+      vertical: 'flex flex-col',
+    };
 
-  const spacingClasses = {
-    tight: 'gap-1',
-    normal: 'gap-2',
-    loose: 'gap-3'
-  };
+    const spacingClasses = {
+      tight: 'gap-1',
+      normal: 'gap-2',
+      loose: 'gap-3',
+    };
 
-  const groupClass = `
+    const groupClass = `
     ${orientationClasses[orientation]}
     ${spacingClasses[spacing]}
     ${className}
   `.trim();
 
-  return (
-    <div className="flex flex-col">
-      {title && (
-        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 px-1">
-          {title}
-        </div>
-      )}
-      <div className={groupClass}>
-        {children}
+    return (
+      <div className="flex flex-col">
+        {title && (
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 px-1">
+            {title}
+          </div>
+        )}
+        <div className={groupClass}>{children}</div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 ToolbarGroup.displayName = 'ToolbarGroup';

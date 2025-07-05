@@ -6,42 +6,37 @@ use HadyFayed\ReactWrapper\Forms\Components\ReactField;
 
 class WorkflowCanvasField extends ReactField
 {
-    protected string $view = 'workflow-canvas::filament.fields.workflow-canvas-field';
+    // React Wrapper v3.0 handles rendering directly, no view needed
 
     protected function setUp(): void
     {
         parent::setUp();
         
-        // Set default component and props for workflow canvas
-        $this->component('WorkflowCanvas');
-        $this->height(600);
-        $this->resizable(true);
-        $this->fullscreen(true);
-        $this->toolbar([
-            'save' => true,
-            'export' => true,
-            'import' => true,
-            'minimap' => true,
-            'zoom' => true,
-            'fit_view' => true,
-        ]);
+        // Configure with React Wrapper v3.0 patterns
+        $this->component('WorkflowCanvas')
+            ->reactive()
+            ->lazy()
+            ->height(600)
+            ->validationRules(['array']);
 
-        // Workflow-specific default props
+        // React Wrapper v3.0 compatible props
         $this->props([
-            'enableMinimap' => true,
-            'enableControls' => true,
-            'enableBackground' => true,
-            'backgroundVariant' => 'dots',
-            'selectionMode' => 'partial',
-            'connectionType' => 'smoothstep',
-            'snapToGrid' => true,
-            'gridSize' => 20,
-            'maxZoom' => 2,
-            'minZoom' => 0.1,
-            'defaultViewport' => [
-                'x' => 0,
-                'y' => 0,
-                'zoom' => 0.5
+            'initialData' => null,
+            'readonly' => false,
+            'showMinimap' => true,
+            'enableAutoSave' => true,
+            'autoSaveDelay' => 500,
+            'enableFullscreen' => true,
+            'canvasConfig' => [
+                'snapToGrid' => true,
+                'gridSize' => 20,
+                'maxZoom' => 2,
+                'minZoom' => 0.1,
+                'defaultViewport' => [
+                    'x' => 0,
+                    'y' => 0,
+                    'zoom' => 0.5
+                ],
             ],
         ]);
 

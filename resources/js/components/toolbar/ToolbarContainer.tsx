@@ -23,26 +23,21 @@ export interface ToolbarContainerProps {
  * ToolbarContainer component for consistent toolbar layout
  * Provides positioning and styling for toolbar content
  */
-export const ToolbarContainer: FC<ToolbarContainerProps> = memo(({
-  children,
-  position = 'top-left',
-  orientation = 'vertical',
-  title,
-  className = ''
-}) => {
-  const positionClasses = {
-    'top-left': '!top-1/2 !left-4 !-translate-y-1/2',
-    'top-right': '!top-1/2 !right-4 !-translate-y-1/2',
-    'bottom-left': '!bottom-1/2 !left-4 !translate-y-1/2',
-    'bottom-right': '!bottom-1/2 !right-4 !translate-y-1/2'
-  };
+export const ToolbarContainer: FC<ToolbarContainerProps> = memo(
+  ({ children, position = 'top-left', orientation = 'vertical', title, className = '' }) => {
+    const positionClasses = {
+      'top-left': '!top-1/2 !left-4 !-translate-y-1/2',
+      'top-right': '!top-1/2 !right-4 !-translate-y-1/2',
+      'bottom-left': '!bottom-1/2 !left-4 !translate-y-1/2',
+      'bottom-right': '!bottom-1/2 !right-4 !translate-y-1/2',
+    };
 
-  const orientationClasses = {
-    horizontal: 'flex flex-row',
-    vertical: 'flex flex-col'
-  };
+    const orientationClasses = {
+      horizontal: 'flex flex-row',
+      vertical: 'flex flex-col',
+    };
 
-  const containerClass = `
+    const containerClass = `
     ${orientationClasses[orientation]} gap-2
     bg-white dark:bg-gray-900 
     border border-gray-200 dark:border-gray-700 
@@ -50,18 +45,19 @@ export const ToolbarContainer: FC<ToolbarContainerProps> = memo(({
     ${className}
   `.trim();
 
-  return (
-    <Panel position={position} className={`${positionClasses[position]} z-50`}>
-      <div className={containerClass} role="toolbar" aria-label={title || 'Toolbar'}>
-        {title && (
-          <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 px-1">
-            {title}
-          </div>
-        )}
-        {children}
-      </div>
-    </Panel>
-  );
-});
+    return (
+      <Panel position={position} className={`${positionClasses[position]} z-50`}>
+        <div className={containerClass} role="toolbar" aria-label={title || 'Toolbar'}>
+          {title && (
+            <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 px-1">
+              {title}
+            </div>
+          )}
+          {children}
+        </div>
+      </Panel>
+    );
+  }
+);
 
 ToolbarContainer.displayName = 'ToolbarContainer';

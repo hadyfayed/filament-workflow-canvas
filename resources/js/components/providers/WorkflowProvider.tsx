@@ -9,14 +9,17 @@
  */
 
 import React, { createContext, useContext, useMemo, FC, ReactNode } from 'react';
-import { 
-  IWorkflowManager, 
-  INodeManager, 
-  IConnectionManager, 
-  IViewportManager, 
-  IWorkflowEventSystem 
+import {
+  IWorkflowManager,
+  INodeManager,
+  IConnectionManager,
+  IViewportManager,
+  IWorkflowEventSystem,
 } from '../../interfaces';
-import { workflowServiceFactory, WorkflowServiceConfig } from '../../factories/WorkflowServiceFactory';
+import {
+  workflowServiceFactory,
+  WorkflowServiceConfig,
+} from '../../factories/WorkflowServiceFactory';
 
 export interface WorkflowServices {
   workflowManager: IWorkflowManager;
@@ -37,20 +40,13 @@ const WorkflowContext = createContext<WorkflowServices | null>(null);
  * WorkflowProvider component that provides workflow services to child components
  * Uses dependency injection pattern with service factory
  */
-export const WorkflowProvider: FC<WorkflowProviderProps> = ({ 
-  children, 
-  serviceConfig = {} 
-}) => {
+export const WorkflowProvider: FC<WorkflowProviderProps> = ({ children, serviceConfig = {} }) => {
   // SOLID: Create services using factory (Dependency Injection)
   const services = useMemo<WorkflowServices>(() => {
     return workflowServiceFactory.createAllServices(serviceConfig);
   }, [serviceConfig]);
 
-  return (
-    <WorkflowContext.Provider value={services}>
-      {children}
-    </WorkflowContext.Provider>
-  );
+  return <WorkflowContext.Provider value={services}>{children}</WorkflowContext.Provider>;
 };
 
 /**
