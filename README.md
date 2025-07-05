@@ -25,11 +25,11 @@ npm install @hadyfayed/filament-workflow-canvas
 
 **Dependencies:**
 
-This package requires the React Wrapper as a base:
+This package requires the React Wrapper v3.1.0+ as a base:
 
 ```bash
-composer require hadyfayed/filament-react-wrapper
-npm install @hadyfayed/filament-react-wrapper
+composer require hadyfayed/filament-react-wrapper:"^3.1.0"
+npm install @hadyfayed/filament-react-wrapper@"^3.1.0"
 ```
 
 ### Option 2: Using as Local Development Packages
@@ -61,7 +61,7 @@ php artisan migrate
 ```
 
 ### ✨ No Plugin Registration Required!
-React Wrapper v3.0 provides **direct Filament integration**:
+React Wrapper v3.1.0+ provides **direct Filament integration**:
 - No plugin registration needed in your Filament panel
 - Components work directly with Filament forms and resources  
 - Automatic asset loading and dependency management
@@ -184,7 +184,7 @@ class WorkflowBuilder extends Component
 </div>
 ```
 
-### Filament Integration (React Wrapper v3.0 Direct Integration)
+### Filament Integration (React Wrapper v3.1.0+ Direct Integration)
 
 #### Form Field Integration
 ```php
@@ -218,7 +218,7 @@ class WorkflowStatsWidget extends ReactWidget
 ```
 
 #### No Plugin Required!
-React Wrapper v3.0 provides **direct Filament integration** without requiring plugin registration:
+React Wrapper v3.1.0+ provides **direct Filament integration** without requiring plugin registration:
 - Components work directly with Filament forms and resources
 - Lazy loading and asset management handled automatically
 - 90%+ React-PHP function mapping for seamless integration
