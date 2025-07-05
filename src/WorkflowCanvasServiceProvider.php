@@ -12,10 +12,10 @@ class WorkflowCanvasServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        // React Wrapper v3.0 auto-registers itself, no manual registration needed
+        // React Wrapper v3.1.0+ auto-registers itself, no manual registration needed
         $this->mergeConfigFrom(__DIR__.'/../config/workflow-canvas.php', 'workflow-canvas');
         
-        // Register workflow canvas components with React Wrapper v3.0
+        // Register workflow canvas components with React Wrapper v3.1.0+
         $this->registerWorkflowComponents();
     }
 
@@ -73,7 +73,7 @@ class WorkflowCanvasServiceProvider extends ServiceProvider
     {
         if (class_exists(\Illuminate\Foundation\Console\AboutCommand::class)) {
             \Illuminate\Foundation\Console\AboutCommand::add('Workflow Canvas', fn () => [
-                'Version' => '1.0.0',
+                'Version' => '1.1.0',
                 'Workflows Count' => \HadyFayed\WorkflowCanvas\Models\Workflow::count(),
                 'ReactFlow Integration' => 'Enabled',
                 'React Wrapper Dependency' => class_exists(\HadyFayed\ReactWrapper\ReactWrapperServiceProvider::class) ? 'Available' : 'Missing',
@@ -83,12 +83,12 @@ class WorkflowCanvasServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register workflow canvas components with React Wrapper v3.0
+     * Register workflow canvas components with React Wrapper v3.1.0+
      */
     protected function registerWorkflowComponents(): void
     {
         $this->app->booted(function () {
-            // React Wrapper v3.0 uses the new registry pattern
+            // React Wrapper v3.1.0+ uses the new registry pattern
             if (app()->bound('react-wrapper.registry')) {
                 $registry = app('react-wrapper.registry');
                 
@@ -129,7 +129,7 @@ class WorkflowCanvasServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register assets directly with Filament (React Wrapper v3.0 no-plugin pattern)
+     * Register assets directly with Filament (React Wrapper v3.1.0+ no-plugin pattern)
      */
     protected function registerFilamentAssets(): void
     {

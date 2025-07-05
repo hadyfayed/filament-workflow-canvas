@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Visual Workflow Canvas** package for FilamentPHP applications - a React-based drag-and-drop workflow builder that integrates seamlessly with Laravel and Filament. The package provides a complete workflow management system with visual node-based editing, real-time validation, and execution capabilities.
 
-**Key Technologies**: React 18 + TypeScript + ReactFlow + Laravel + Filament + React Wrapper v3.0 + Vite
+**Key Technologies**: React 18 + TypeScript + ReactFlow + Laravel + Filament + React Wrapper v3.1.0+ + Vite
 
 ## Development Commands
 
@@ -103,7 +103,7 @@ components/
 
 ## Key Development Patterns
 
-### React Wrapper v3.0 Integration Patterns
+### React Wrapper v3.1.0+ Integration Patterns
 
 #### Form Field Integration
 ```php
@@ -134,7 +134,7 @@ class WorkflowStatsWidget extends ReactWidget
 }
 ```
 
-#### Variable Sharing (React Wrapper v3.0)
+#### Variable Sharing (React Wrapper v3.1.0+)
 ```php
 // Share workflow data globally
 app('react-wrapper.variables')->shareGlobal('workflowTypes', $nodeTypes);
@@ -208,22 +208,22 @@ The package externalizes peer dependencies:
 - `reactflow` - Workflow canvas engine
 - `@heroicons/react` - Icon system
 - `uuid` - Unique ID generation
-- `@hadyfayed/filament-react-wrapper` v3.0+ - Enterprise React-PHP bridge
+- `@hadyfayed/filament-react-wrapper` v3.1.0+ - Enterprise React-PHP bridge
 
 ### Code Splitting
-Automatic chunking for optimal loading with React Wrapper v3.0 lazy loading:
+Automatic chunking for optimal loading with React Wrapper v3.1.0+ lazy loading:
 - `workflow-core` - Core utilities and types
 - `workflow-services` - Service layer
 - `workflow-components` - Main components (lazy loaded)
 - `workflow-interfaces` - Type definitions
 - Smart dependency loading on component intersection
 
-## React Wrapper v3.0 Best Practices
+## React Wrapper v3.1.0+ Best Practices
 
 ### Component Registration Pattern
 Components are automatically registered with lazy loading and dependency management:
 ```typescript
-// Bootstrap function uses React Wrapper v3.0 registry
+// Bootstrap function uses React Wrapper v3.1.0+ registry
 registry.register('WorkflowCanvas', WorkflowCanvas, {
   lazy: true,
   preload: false,
@@ -269,8 +269,8 @@ class WorkflowStatsWidget extends ReactWidget
 
 ## Integration Notes
 
-### React Wrapper v3.0 Direct Integration
-This package uses `@hadyfayed/filament-react-wrapper` v3.0+ for **direct Filament integration**:
+### React Wrapper v3.1.0+ Direct Integration
+This package uses `@hadyfayed/filament-react-wrapper` v3.1.0+ for **direct Filament integration**:
 - **No plugin registration required** - Components work directly with Filament
 - Enterprise-level React-PHP integration (90%+ function mapping)
 - Smart asset loading and lazy component loading
@@ -290,5 +290,5 @@ This package uses `@hadyfayed/filament-react-wrapper` v3.0+ for **direct Filamen
 - Database migrations for workflow data
 - Queue job integration for async processing
 - Event system for workflow lifecycle hooks
-- React Wrapper v3.0 variable sharing service
+- React Wrapper v3.1.0+ variable sharing service
 - Asset management with lazy loading

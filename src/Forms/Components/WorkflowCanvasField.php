@@ -6,20 +6,20 @@ use HadyFayed\ReactWrapper\Forms\Components\ReactField;
 
 class WorkflowCanvasField extends ReactField
 {
-    // React Wrapper v3.0 handles rendering directly, no view needed
+    // React Wrapper v3.1.0+ handles rendering directly, no view needed
 
     protected function setUp(): void
     {
         parent::setUp();
         
-        // Configure with React Wrapper v3.0 patterns
+        // Configure with React Wrapper v3.1.0+ patterns
         $this->component('WorkflowCanvas')
             ->reactive()
             ->lazy()
             ->height(600)
             ->validationRules(['array']);
 
-        // React Wrapper v3.0 compatible props
+        // React Wrapper v3.1.0+ compatible props
         $this->props([
             'initialData' => null,
             'readonly' => false,

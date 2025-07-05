@@ -14,13 +14,13 @@ class WorkflowStatsWidget extends ReactWidget
     
     protected int | string | array $columnSpan = 'full';
     
-    // React Wrapper v3.0 handles rendering directly, no view needed
+    // React Wrapper v3.1.0+ handles rendering directly, no view needed
 
     protected function setUp(): void
     {
         parent::setUp();
         
-        // Configure with React Wrapper v3.0 patterns
+        // Configure with React Wrapper v3.1.0+ patterns
         $this->lazy()
             ->height(400)
             ->refreshInterval(30); // 30 seconds
