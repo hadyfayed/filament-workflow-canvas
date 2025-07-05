@@ -1,6 +1,6 @@
 {
   "name": "@hadyfayed/filament-workflow-canvas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Visual workflow builder and canvas component for Filament applications",
   "type": "module",
   "main": "dist/index.es.js",
